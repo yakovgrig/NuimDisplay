@@ -51,8 +51,8 @@ namespace NuimDisplay
             ("שתיים עשרה", false),
             ("שלוש עשרה", false),
             ("ארבע עשרה", false),
-            ("חמיש עשרה", false),
-            ("שיש עשרה", false),
+            ("חמש עשרה", false),
+            ("שש עשרה", false),
             ("שבע עשרה", false),
             ("שמונה עשרה", false),
             ( "תשע עשרה", false),
@@ -127,14 +127,15 @@ namespace NuimDisplay
 
         static void Main(string[] args)
         {
-            bool forMale = true;
+            bool forMale = false;
 
             var digitMap = forMale ? maleDigitMap : femaleDigitMap;
             var firstNumbersMap = forMale ? maleFirstNumbersMap : femaleFirstNumbersMap;
 
             list[0] = new NamedNumber(firstNumbersMap, digitMap, null, null);
 
-            long num = 12144560557778030;
+            long num = 9223372036854002807L;
+            //long num =315;
             string res = "";
 
             long n = num;
