@@ -7,10 +7,10 @@ namespace NuimDisplay
 {
     class Program
     {
-        static string[] mdigit = new[] { "אפס", "אחד", "שניים", "שלושה", "ארבעה", "חמישה", "שישה", "שבעה", "שמונה", "תשעה" };
-        static string[] fdigit = new[] { "אפס", "אחת", "שתיים", "שלוש", "ארבע", "חמש", "שש", "שבע", "שמונה", "תשע" };
+        static string[] maleDigitMap = new[] { "אפס", "אחד", "שניים", "שלושה", "ארבעה", "חמישה", "שישה", "שבעה", "שמונה", "תשעה" };
+        static string[] femaleDigitMap = new[] { "אפס", "אחת", "שתיים", "שלוש", "ארבע", "חמש", "שש", "שבע", "שמונה", "תשע" };
         
-        static string[] tdigit = new[] { "", "", "", "שלושת", "ארבעת", "חמשת", "ששת", "שבעת", "שמונת", "תשעת", "עשרת" };
+        //static string[] tdigit = new[] { "", "", "", "שלושת", "ארבעת", "חמשת", "ששת", "שבעת", "שמונת", "תשעת", "עשרת" };
 
         static (string Word, bool? Plural)[] maleFirstNumbersMap = new (string, bool?)[] {
             ("", null),
@@ -94,58 +94,72 @@ namespace NuimDisplay
             "תשעים",
         };
 
-        class NumberEntityParams
+        class NamedNumber
         {
             public (string Word, bool? Plural)[] FirstNumbersMap;
+            public string[] DigitMap;
             public string EntityWord;
             public string EntitiesWord;
 
-            public NumberEntityParams() { }
-            public NumberEntityParams((string Word, bool? Plural)[] FirstNumbersMap, string EntityWord, string EntitiesWord) 
+            public NamedNumber() { }
+            public NamedNumber((string Word, bool? Plural)[] firstNumbersMap, string[] digitMap, string entityWord, string entitiesWord) 
             {
-                this.FirstNumbersMap = FirstNumbersMap;
-                this.EntityWord = EntityWord;
-                this.EntitiesWord = EntitiesWord;
+                this.FirstNumbersMap = firstNumbersMap;
+                this.DigitMap = digitMap;
+                this.EntityWord = entityWord;
+                this.EntitiesWord = entitiesWord;
             }
 
         }
 
-        List<NumberEntityParams> list = new List<NumberEntityParams>
+        static List<NamedNumber> list = new List<NamedNumber>
             {
-                new(),
-                new(thousandFirstNumbersMap, "אלף", "אלפים"),
-                new(maleFirstNumbersMap, "מיליון", "מיליונים"),
-                new(maleFirstNumbersMap, "מיליארד", "מיליארדים"),
-                new(maleFirstNumbersMap, "טריליון", "טריליונים"),
-                new(maleFirstNumbersMap, "קוודריליון", "קוודריליונים"),
-                new(maleFirstNumbersMap, "קווינטיליון", "קווינטיליונים"),
-                new(maleFirstNumbersMap, "סקסטיליון", "סקסטיליונים"),
-                new(maleFirstNumbersMap, "ספּטיליון", "ספּטיליונים"),
+                null,
+                new(thousandFirstNumbersMap, maleDigitMap, "אלף", "אלפים"),
+                new(maleFirstNumbersMap, maleDigitMap, "מיליון", "מיליונים"),
+                new(maleFirstNumbersMap, maleDigitMap, "מיליארד", "מיליארדים"),
+                new(maleFirstNumbersMap, maleDigitMap, "טריליון", "טריליונים"),
+                new(maleFirstNumbersMap, maleDigitMap, "קוודריליון", "קוודריליונים"),
+                new(maleFirstNumbersMap, maleDigitMap, "קווינטיליון", "קווינטיליונים"),
+                new(maleFirstNumbersMap, maleDigitMap, "סקסטיליון", "סקסטיליונים"),
+                new(maleFirstNumbersMap, maleDigitMap, "ספּטיליון", "ספּטיליונים"),
             };
 
         static void Main(string[] args)
         {
             bool forMale = true;
 
-            var digit = forMale ? mdigit : fdigit;
+            var digitMap = forMale ? maleDigitMap : femaleDigitMap;
             var firstNumbersMap = forMale ? maleFirstNumbersMap : femaleFirstNumbersMap;
 
-            int num = 10030;
-            var sb = new StringBuilder();
+            list[0] = new NamedNumber(firstNumbersMap, digitMap, null, null);
 
-            for (int i = 9; i > 2; --i)
+            long num = 12144560557778030;
+            string res = "";
+
+            long n = num;
+            int i = 0;
+
+            bool resAndPresent = false;
+
+            do
             {
-                int d = num / (int)Math.Pow(10, i);
-                if (d > 0)
-                {
-                    //s = AppendPart(d);
-                }
-                
-                //Debug.WriteLine(d);
-            }
+                var namedNumber = list[i];
+                int r = (int)(n % 1000);
 
-            int td = 111;
-            Debug.WriteLine(Hundreds(out bool andPresent, td, digit, thousandFirstNumbersMap, true, "אלף", "אלפים"));
+                if (r > 0)
+                {
+                    string s = Hundreds(out bool andPresent, r, namedNumber.DigitMap, namedNumber.FirstNumbersMap, namedNumber.EntityWord!=null,  namedNumber.EntityWord, namedNumber.EntitiesWord);
+                    res = s + (string.IsNullOrEmpty(res) ? "" : " ") + (!string.IsNullOrEmpty(res) && !resAndPresent && !andPresent ? "ו" : "") + res;
+                    resAndPresent = resAndPresent || andPresent;
+                }
+
+                n = n / 1000;
+                ++i;
+            }
+            while (n > 0);
+
+            Debug.WriteLine(res);
         }
 
 
@@ -177,7 +191,7 @@ namespace NuimDisplay
                     break;
 
                 default: 
-                    s1 = $"{fdigit[c1]} מאות"; 
+                    s1 = $"{femaleDigitMap[c1]} מאות"; 
                     break;
             }
 
@@ -236,7 +250,7 @@ namespace NuimDisplay
                 
                 if (entityPresent && map.Plural != null) // if map.Plural is null then don't append either entityWord nor entitiesWord
                 {
-                    sb.Append(map.Plural.Value ? $" {entityWord}" : $" {entitiesWord}");
+                    sb.Append(map.Plural.Value ? $" {entitiesWord}" : $" {entityWord}");
                 }
             }
             else 
